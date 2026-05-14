@@ -19,12 +19,11 @@ class Products extends Model
         'description',
         'min_stock',
         'purchase_price',
-        'sell_price' // Tadi kamu tulis 'sell_prices' (kelebihan huruf s)
+        'sell_price'
     ];
 
     public function categories()
     {
-        // Jika model kategori kamu namanya 'Categories', maka:
         return $this->belongsTo(Categories::class, 'category_id');
     }
 

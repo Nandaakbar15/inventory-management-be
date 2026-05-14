@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Suppliers;
 use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SuppliersController extends Controller
 {
@@ -32,13 +35,28 @@ class SuppliersController extends Controller
             'address' => "required|string|max:255"
         ]);
 
-        $suppliers = Suppliers::create($validateData);
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'statusCode' => 201,
-            'message' => 'Berhasil menambahkan data!',
-            'data' => $suppliers
-        ], 201);
+            $suppliers = Suppliers::create($validateData);
+
+            DB::commit();
+
+            return response()->json([
+                'statusCode' => 201,
+                'message' => 'Berhasil menambahkan data!',
+                'data' => $suppliers
+            ], 201);
+        } catch(Exception $e) {
+            DB::rollback();
+
+            Log::error("Gagal menambahkan data!" . $e->getMessage());
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => 'Gagal menambahkan data!'
+            ], 500);
+        }
     }
 
     /**
@@ -55,7 +73,7 @@ class SuppliersController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Suppliers $suppliers)
+    public function update(Request $request, Suppliers $supplier)
     {
         $validateData = $request->validate([
             'name' => "required|string|max:255",
@@ -64,24 +82,39 @@ class SuppliersController extends Controller
             'address' => "required|string|max:255"
         ]);
 
-        $suppliers->update($validateData);
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'statusCode' => 201,
-            'message' => 'Berhasil mengubah data!'
-        ], 201);
+            $supplier->update($validateData);
+
+            DB::commit();
+
+            return response()->json([
+                'statusCode' => 200,
+                'message' => 'Berhasil mengubah data!'
+            ], 200);
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            Log::error("Gagal mengubah data : " . $e->getMessage());
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => 'Error, terjadi kesalahan pada sistem!'
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Suppliers $suppliers)
+    public function destroy(Suppliers $supplier)
     {
-        $suppliers->delete();
+        $supplier->delete();
 
         return response()->json([
-            'statusCode' => 201,
+            'statusCode' => 200,
             'message' => 'Berhasil menghapus data!'
-        ], 201);
+        ], 200);
     }
 }

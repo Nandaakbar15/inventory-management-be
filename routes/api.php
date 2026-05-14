@@ -35,6 +35,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // endpoint buat suppliers
         Route::get('/getAllSuppliers', [SuppliersController::class, 'index']);
         Route::get('/getSuppliersById/{suppliers}', [SuppliersController::class, 'show']);
+        Route::post('/createSupplier', [SuppliersController::class, 'store']);
+        Route::put('/updateSupplier/{supplier}', [SuppliersController::class, 'update']);
+        Route::delete('/deleteSuppllier/{supplier}', [SuppliersController::class, 'destroy']);
     });
 
 });
