@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Categories;
 use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CategoriesController extends Controller
 {
@@ -26,16 +29,31 @@ class CategoriesController extends Controller
     public function store(Request $request)
     {
         $validateData = $request->validate([
-            'name' => 'required',
-            'slug' => 'required'
+            'name' => 'required|string',
+            'slug' => 'required|string'
         ]);
 
-        Categories::create($validateData);
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'statusCode' => 201,
-            'message' => 'Berhasil menambahkan data!'
-        ], 201);
+            Categories::create($validateData);
+
+            DB::commit();
+
+            return response()->json([
+                'statusCode' => 201,
+                'message' => 'Berhasil menambahkan data!'
+            ], 201);
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal menambahkan data : ' . $e->getMessage());
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => "Error, terjadi kesalahan pada sistem!"
+            ], 500);
+        }
     }
 
     /**
@@ -55,16 +73,31 @@ class CategoriesController extends Controller
     public function update(Request $request, Categories $categories)
     {
         $validateData = $request->validate([
-            'name' => 'required',
-            'slug' => 'required'
+            'name' => 'required|string',
+            'slug' => 'required|string'
         ]);
 
-        $categories->update($validateData);
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'statusCode' => 200,
-            'message' => "Berhasil mengubah data!"
-        ], 200);
+            $categories->update($validateData);
+
+            DB::commit();
+
+            return response()->json([
+                'statusCode' => 200,
+                'message' => "Berhasil mengubah data!"
+            ], 200);
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal mengubah data : ' . $e->getMessage());
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => 'Error, terjadi kesalahan pada sistem!'
+            ], 500);
+        }
     }
 
     /**
@@ -72,11 +105,26 @@ class CategoriesController extends Controller
      */
     public function destroy(Categories $categories)
     {
-        $categories->delete();
+        try {
+            DB::beginTransaction();
 
-        return response()->json([
-            'statusCode' => 201,
-            'message' => "Berhasil menghapus data!"
-        ], 201);
+            $categories->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'statusCode' => 201,
+                'message' => "Berhasil menghapus data!"
+            ], 201);
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            Log::error("Gagal menghapus data : " . $e->getMessage());
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => 'Error, terjadi kesalahan pada sistem!'
+            ], 500);
+        }
     }
 }
